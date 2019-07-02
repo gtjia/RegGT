@@ -11,13 +11,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace nuxt_el_server.Controllers
+namespace Gt.Common.Api.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
+	[Route("api/[controller]")]
+	[ApiController]
 	[Authorize]
 	public class AuthController : ControllerBase
-    {
+	{
 		private readonly IConfiguration _configuration;
 
 		public AuthController(IConfiguration configuration)
@@ -58,8 +58,8 @@ namespace nuxt_el_server.Controllers
 					除了规定的字段外，可以包含其他任何 JSON 兼容的字段。
 				 * */
 				var token = new JwtSecurityToken(
-					issuer: "yourdomain.com",
-					audience: "yourdomain.com",
+					issuer: "Gt.Common.Com",
+					audience: "Gt.Common.Com",
 					claims: claims,
 					expires: DateTime.Now.AddMinutes(3),
 					signingCredentials: creds);
@@ -78,8 +78,10 @@ namespace nuxt_el_server.Controllers
 		{
 			string userName = this.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Name).Value;
 
-			var result = new {
-				user = new {
+			var result = new
+			{
+				user = new
+				{
 					UserName = userName,
 					scope = new string[] { "test", "admin" }
 				}

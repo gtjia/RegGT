@@ -49,8 +49,8 @@ export default {
     strategies: {
       local: {
         endpoints: {
-          login: { url: 'https://localhost:44333/api/auth/Login', method: 'post' },
-          user: { url: 'https://localhost:44333/api/auth/User', method: 'get', propertyName: 'user' }
+          login: { url: 'https://localhost:44348/api/auth/Login', method: 'post' },
+          user: { url: 'https://localhost:44348/api/auth/User', method: 'get', propertyName: 'user' }
         }
       }
     }

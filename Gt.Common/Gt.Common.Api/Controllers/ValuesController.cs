@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace nuxt_el_server.Controllers
+namespace Gt.Common.Api.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]

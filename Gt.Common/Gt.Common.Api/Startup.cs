@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace nuxt_el_server
+namespace Gt.Common.Api
 {
 	public class Startup
 	{
@@ -38,8 +38,8 @@ namespace nuxt_el_server
 						ValidateAudience = true,//是否验证Audience
 						ValidateLifetime = true,//是否验证失效时间
 						ValidateIssuerSigningKey = true,//是否验证SecurityKey
-						ValidAudience = "yourdomain.com",//Audience
-						ValidIssuer = "yourdomain.com",//Issuer，这两项和前面签发jwt的设置一致
+						ValidAudience = "Gt.Common.Com",//Audience
+						ValidIssuer = "Gt.Common.Com",//Issuer，这两项和前面签发jwt的设置一致
 						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["SecurityKey"]))//拿到SecurityKey
 					};
 				});
@@ -59,6 +59,7 @@ namespace nuxt_el_server
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 		{
 			app.UseAuthentication();//注意添加这一句，启用验证
+
 			if (env.IsDevelopment())
 			{
 				app.UseDeveloperExceptionPage();

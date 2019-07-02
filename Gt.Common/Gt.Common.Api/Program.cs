@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace nuxt_el_server
+namespace Gt.Common.Api
 {
 	public class Program
 	{
