@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Gt.Core.Data;
+using Gt.Core.Service;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -12,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Gt.Core.Api
 {
@@ -28,16 +33,19 @@ namespace Gt.Core.Api
 		public void ConfigureServices(IServiceCollection services)
 		{
 			// Add framework services.
-			services.AddDbContext<GtDbContext>(options =>
-				options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
-					b => b.MigrationsAssembly("Gt.Core.Data")));
-			
+			this.ConfigureDB(services);
+			this.ConfigureService(services);
+			this.ConfigureAuth(services);
+
+
 			services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 		{
+			app.UseAuthentication();//注意添加这一句，启用验证
+
 			if (env.IsDevelopment())
 			{
 				app.UseDeveloperExceptionPage();
@@ -51,5 +59,50 @@ namespace Gt.Core.Api
 			app.UseHttpsRedirection();
 			app.UseMvc();
 		}
+
+
+		#region Configurations
+		private void ConfigureDB(IServiceCollection services)
+		{
+			services.AddDbContext<GtDbContext>(options =>
+				options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
+					b => b.MigrationsAssembly("Gt.Core.Data")));
+		}
+
+		private void ConfigureAuth(IServiceCollection services)
+		{
+			//添加jwt验证：
+			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+				.AddJwtBearer(options =>
+				{
+					options.TokenValidationParameters = new TokenValidationParameters
+					{
+						ValidateIssuer = true,//是否验证Issuer
+						ValidateAudience = true,//是否验证Audience
+						ValidateLifetime = true,//是否验证失效时间
+						ValidateIssuerSigningKey = true,//是否验证SecurityKey
+						ValidAudience = "Gt.Common.Com",//Audience
+						ValidIssuer = "Gt.Common.Com",//Issuer，这两项和前面签发jwt的设置一致
+						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["SecurityKey"]))//拿到SecurityKey
+					};
+				});
+
+			services.AddCors(options =>
+			 options.AddPolicy("any",
+				builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin().AllowCredentials())
+			 )
+			 .AddCors(options => options.AddPolicy("AllowSameDomain",
+				builder => builder.WithOrigins(new string[] { "http://localhost:80", "http://localhost:8080", "http://localhost:3000" }).AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin().AllowCredentials())
+			 );
+		}
+
+		private void ConfigureService(IServiceCollection services)
+		{
+			Assembly ass = Assembly.GetAssembly(typeof(IService));
+			Type[] types = ass.GetTypes().Where(t => t.IsClass).ToArray();
+			foreach (var t in types)
+				services.AddTransient(t);
+		}
+		#endregion
 	}
 }
