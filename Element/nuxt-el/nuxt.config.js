@@ -29,6 +29,7 @@ export default {
   ** Plugins to load before mounting the App
   */
   plugins: [
+    '@/plugins/axios',
     '@/plugins/element-ui'
   ],
   /*
@@ -38,6 +39,18 @@ export default {
     '@nuxtjs/axios',
     '@nuxtjs/auth'
   ],
+  axios: {
+    proxy: true, // Can be also an object with default options
+    prefix: '/api/',
+    credentials: true
+  },
+  proxy: {
+    '/api/': { 
+      target: 'https://localhost:44379/', 
+      "secure": false, //不检验证书
+      pathRewrite: {'^/api/': '/', changeOrigin: true} 
+    }
+  },
   auth: {
     // Options
     redirect: {
@@ -49,8 +62,10 @@ export default {
     strategies: {
       local: {
         endpoints: {
-          login: { url: 'https://localhost:44348/api/auth/Login', method: 'post' },
-          user: { url: 'https://localhost:44348/api/auth/User', method: 'get', propertyName: 'user' }
+          login: { url: 'https://localhost:44379/api/auth/Login', method: 'post' },
+          user: { url: 'https://localhost:44379/api/auth/User', method: 'get', propertyName: 'user' },
+          reset: { url: 'https://localhost:44379/api/auth/Refresh', method: 'post' },
+          logout: { url: 'https://localhost:44379/api/auth/Logout', method: 'post' }
         }
       }
     }

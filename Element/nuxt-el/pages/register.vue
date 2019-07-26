@@ -15,9 +15,12 @@
                             <el-form-item label="密码" prop="pass">
                                 <el-input type="password" v-model="loginForm.pass" auto-complete="off"></el-input>
                             </el-form-item>
+                            <el-form-item label="确认密码" prop="checkPass">
+                                <el-input type="password" v-model="loginForm.checkPass" auto-complete="off"></el-input>
+                            </el-form-item>
                             <el-form-item>
                                 <el-button type="primary" @click="submitForm('loginForm')">提交</el-button>
-                                <el-button type="primary" @click="testGet()">测试</el-button>
+                                <el-button @click="resetForm('loginForm')">重置</el-button>
                             </el-form-item>
                         </el-form>
                     </el-card>
@@ -30,6 +33,13 @@
 import Vue from 'vue'
 export default Vue.extend({
     data(){
+        var validatePass2 = (rule, value, callback) => {
+            if (value !== this.loginForm.pass){
+                callback(new Error('两次数据密码不一致!'));
+            } else {
+                callback();
+            }
+        };
         return{
             loginForm: {
                 username: '',
@@ -42,6 +52,10 @@ export default Vue.extend({
                 ],
                 pass: [
                     { required: true, message: '请输入密码', trigger: 'blur'}
+                ],
+                checkPass: [
+                    { required: true, message: '请再次输入密码', trigger: 'blur'},
+                    { validator: validatePass2, trigger: 'blur' }
                 ]
             }
         }
@@ -65,10 +79,9 @@ export default Vue.extend({
                 }
             });
         },
-        testGet(){
-            this.$axios.get("/api/values").then((res) => {
-                console.log(res.data);
-            })
+        resetForm(formName){
+            console.log(this.$auth.user);
+            this.$refs[formName].resetFields();
         }
     }
 })

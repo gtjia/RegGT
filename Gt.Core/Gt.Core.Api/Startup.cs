@@ -4,7 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Gt.Core.Api.Jwt;
 using Gt.Core.Data;
+using Gt.Core.Model.Models;
 using Gt.Core.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -56,6 +58,8 @@ namespace Gt.Core.Api
 				app.UseHsts();
 			}
 
+			app.UseCors("AllowSameDomain");
+
 			app.UseHttpsRedirection();
 			app.UseMvc();
 		}
@@ -71,21 +75,65 @@ namespace Gt.Core.Api
 
 		private void ConfigureAuth(IServiceCollection services)
 		{
-			//添加jwt验证：
-			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-				.AddJwtBearer(options =>
+			//将appsettings.json中的JwtSettings部分文件读取到JwtSettings中，这是给其他地方用的
+			services.Configure<JwtSettings>(Configuration.GetSection("JwtSettings"));
+
+			services.AddScoped(typeof(Security));
+
+			//由于初始化的时候我们就需要用，所以使用Bind的方式读取配置
+			//将配置绑定到JwtSettings实例中
+			var jwtSettings = new JwtSettings();
+			Configuration.Bind("JwtSettings", jwtSettings);
+
+			services.AddAuthentication(options => {
+				//认证middleware配置
+				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+			})
+			.AddJwtBearer(o => {
+				//主要是jwt  token参数设置
+				o.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
 				{
-					options.TokenValidationParameters = new TokenValidationParameters
-					{
-						ValidateIssuer = true,//是否验证Issuer
-						ValidateAudience = true,//是否验证Audience
-						ValidateLifetime = true,//是否验证失效时间
-						ValidateIssuerSigningKey = true,//是否验证SecurityKey
-						ValidAudience = "Gt.Common.Com",//Audience
-						ValidIssuer = "Gt.Common.Com",//Issuer，这两项和前面签发jwt的设置一致
-						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["SecurityKey"]))//拿到SecurityKey
-					};
-				});
+					//Token颁发机构
+					ValidIssuer = jwtSettings.Issuer,
+					//颁发给谁
+					ValidAudience = jwtSettings.Audience,
+					//这里的key要进行加密，需要引用Microsoft.IdentityModel.Tokens
+					IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+					ValidateIssuer = true,//是否验证Issuer
+					ValidateAudience = true,//是否验证Audience
+					ValidateLifetime = true,//是否验证失效时间
+					ValidateIssuerSigningKey = true,//是否验证SecurityKey
+					ClockSkew = TimeSpan.Zero
+				};
+				//o.Events = new JwtBearerEvents
+				//{
+				//	OnMessageReceived = context =>
+				//	{
+				//		var accessToken = context.HttpContext.Request.Query["access_token"];
+				//		var path = context.HttpContext.Request.Path;
+				//		if (!(string.IsNullOrWhiteSpace(accessToken))
+				//			&& path.StartsWithSegments("/hubs/message"))
+				//		{
+				//			context.Token = accessToken;
+				//		}
+				//		return Task.CompletedTask;
+				//	},
+				//	OnAuthenticationFailed = context =>
+				//	{
+				//		//Token expired
+				//		if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+				//		{
+				//			context.Response.Headers.Add("Token-Expired", "true");
+				//		}
+				//		else if (context.Exception.GetType() == typeof(SecurityTokenInvalidLifetimeException))
+				//		{
+				//			context.Response.Headers.Add("Token-Expired", "true");
+				//		}
+				//		return Task.CompletedTask;
+				//	}
+				//};
+			});
 
 			services.AddCors(options =>
 			 options.AddPolicy("any",

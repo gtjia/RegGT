@@ -18,7 +18,7 @@ namespace Gt.Core.Data.DbMap
 			builder.Property(t => t.PictureUrl).HasMaxLength(500);
 
 			//这个可以不指定
-			//builder.HasOne(r => r.Role).WithMany(u => u.Users).HasForeignKey("RoleId");
+			builder.HasOne(r => r.Role).WithMany(u => u.Users).HasForeignKey(u => u.RoleId);
 
 			//Initial data
 			builder.HasData(new { Id = 1, UserName = "Admin", Password = "111111", RealName = "Guang Tao", RoleId= 1 });

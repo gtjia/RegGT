@@ -5,12 +5,14 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Gt.Core.Api.Jwt;
 using Gt.Core.Model.Models;
 using Gt.Core.Service;
 using Gt.Core.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Gt.Core.Api.Controllers
@@ -20,12 +22,12 @@ namespace Gt.Core.Api.Controllers
 	[Authorize]
 	public class AuthController : ControllerBase
 	{
-		private readonly IConfiguration _configuration;
+		private Security _security;
 		private AuthorizationService _authService;
 
-		public AuthController(IConfiguration configuration, AuthorizationService authService)
+		public AuthController(Security security, AuthorizationService authService)
 		{
-			_configuration = configuration;
+			_security = security;
 			_authService = authService;
 		}
 
@@ -41,11 +43,15 @@ namespace Gt.Core.Api.Controllers
 		{
 			try
 			{
-				var token = _authService.Login(request);
+				var user = _authService.Login(request);
+
+				var tokenStr = _security.CreateToken(user);
+
 				return Ok(new
 				{
-					token = new JwtSecurityTokenHandler().WriteToken(token)
+					token = tokenStr
 				});
+
 			}
 			catch (BussinessException ex)
 			{
@@ -61,17 +67,54 @@ namespace Gt.Core.Api.Controllers
 		[HttpGet("user")]
 		public IActionResult GetUser()
 		{
-			string userName = this.User.Claims.FirstOrDefault(p => p.Type == ClaimTypes.Name).Value;
-
+			var user = _security.GetUser(this.Request.Headers["Authorization"]);
 			var result = new
 			{
-				user = new
-				{
-					UserName = userName,
-					scope = new string[] { "test", "admin" }
-				}
+				user = user
 			};
 			return new JsonResult(result);
+		}
+
+		[AllowAnonymous]
+		[HttpPost("refresh")]
+		public IActionResult Refresh()
+		{
+			try
+			{
+				var tokenStr = _security.RefreshToken(this.Request.Headers["Authorization"]);
+
+				return Ok(new { token = tokenStr });
+			}
+			catch (BussinessException ex)
+			{
+				return BadRequest(ex.Message);
+			}
+			catch (Exception ex)
+			{
+				return BadRequest("Could not verify username and password");
+			}
+
+		}
+
+		[AllowAnonymous]
+		[HttpPost("logout")]
+		public IActionResult Logout()
+		{
+			try
+			{
+				_security.RemoveToken(this.Request.Headers["Authorization"]);
+
+				return Ok(new { });
+			}
+			catch (BussinessException ex)
+			{
+				return BadRequest(ex.Message);
+			}
+			catch (Exception ex)
+			{
+				return BadRequest("Could not verify username and password");
+			}
+
 		}
 	}
 }

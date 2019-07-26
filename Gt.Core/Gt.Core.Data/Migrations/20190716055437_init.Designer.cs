@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Gt.Core.Data.Migrations
 {
     [DbContext(typeof(GtDbContext))]
-    [Migration("20190712085850_init")]
+    [Migration("20190716055437_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

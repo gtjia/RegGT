@@ -25,14 +25,14 @@
         </a>
       </div>
       <div>
-          User: <b-badge>{{ $auth.hasScope('user') }}</b-badge>
-          Test: <b-badge>{{ $auth.hasScope('test') }}</b-badge>
-          Admin: <b-badge>{{ $auth.hasScope('admin') }}</b-badge>
+          User: {{ $auth.hasScope('user') }}
+          Test: {{ $auth.hasScope('test') }}
+          Admin: {{ $auth.hasScope('admin') }}
           <hr>
-          <el-btn-group>
-            <el-button @click="$auth.fetchUser()">Fetch User</el-button>
-            <el-button @click="$auth.logout()">Logout</el-button>
-          </el-btn-group>
+          <el-button @click="$auth.fetchUser()">Fetch User</el-button>
+          <el-button @click="$auth.logout()">Logout</el-button>
+          <el-button ref="testGet" @click="testGet()">测试</el-button>
+          <el-button @click="refreshToken()">刷新Token</el-button>
       </div>
     </div>
   </div>
@@ -41,11 +41,36 @@
 <script>
 import Logo from '~/components/Logo.vue'
 
-export default {
+let page = {
   components: {
     Logo
+  },
+  methods: {
+    testGet(){
+      $nuxt.$axios.get("/api/values").then((res) => {
+        console.log(res.data);
+        console.log($nuxt.$auth.getToken('local'))
+      })
+      //setTimeout(() => {
+      //  page.methods.testGet()
+      //}, 2000);
+    },
+    refreshToken(){
+      
+      
+      $nuxt.$axios.post("/api/auth/refresh", {}).then((res) => {
+        let token = this.$auth.strategies["local"].options.tokenType + ' ' + res.data.token
+        this.$auth.setToken("local", token)
+        this.$auth.mounted()
+        //this.$auth.setUserToken(res.data.token)
+        //this.$auth.syncRefreshToken("local")
+        console.log($nuxt.$auth.getToken('local'))
+      })
+      
+    }
   }
 }
+export default page
 </script>
 
 <style>
