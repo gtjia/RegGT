@@ -45,7 +45,7 @@ namespace Gt.Core.Api.Controllers
 			{
 				var user = _authService.Login(request);
 
-				var tokenStr = _security.CreateToken(user);
+				var tokenStr = _security.CreateToken(user).GenerateToken();
 
 				return Ok(new
 				{
@@ -73,27 +73,6 @@ namespace Gt.Core.Api.Controllers
 				user = user
 			};
 			return new JsonResult(result);
-		}
-
-		[AllowAnonymous]
-		[HttpPost("refresh")]
-		public IActionResult Refresh()
-		{
-			try
-			{
-				var tokenStr = _security.RefreshToken(this.Request.Headers["Authorization"]);
-
-				return Ok(new { token = tokenStr });
-			}
-			catch (BussinessException ex)
-			{
-				return BadRequest(ex.Message);
-			}
-			catch (Exception ex)
-			{
-				return BadRequest("Could not verify username and password");
-			}
-
 		}
 
 		[AllowAnonymous]

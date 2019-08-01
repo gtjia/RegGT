@@ -27,40 +27,17 @@ namespace Gt.Core.Api.Jwt
 			_jwtSettings = jwtSettingsAccesser.Value;
 		}
 
-		public string CreateToken(UserModel user)
+		public TokenDto CreateToken(UserModel user)
 		{
-			//string json = JsonConvert.SerializeObject(user, new JsonSerializerSettings()
-			//{
-			//	ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-			//});
-			var claim = new Claim[]{
-					new Claim(ClaimTypes.Name, user.UserName),
-					//new Claim(ClaimTypes.Role, user.Role.RoleName),
-					//new Claim("UserInfo", json)
-				};
-
-			//对称秘钥
-			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
-			//签名证书(秘钥，加密算法)
-			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-			//生成token
-			var authTime = DateTime.Now;
-			var expiresAt = authTime.AddMinutes(1);
-
-			var jwtToken = new JwtSecurityToken(_jwtSettings.Issuer, _jwtSettings.Audience, claim, authTime, expiresAt, creds);
-			var token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
-
 			//缓存Token
-			var dto = new TokenDto()
+			var dto = new TokenDto(_jwtSettings)
 			{
-				Token = token,
 				User = user,
-				LastAccess = authTime
+				LastAccess = DateTime.Now
 			};
 			_tokens.Add(dto);
 
-			return token;
+			return dto;
 		}
 
 		/// <summary>
@@ -85,34 +62,8 @@ namespace Gt.Core.Api.Jwt
 		public void RemoveToken(string token)
 			=> _tokens.Remove(GetExistenceToken(token));
 
-		/// <summary>
-		/// 刷新Token
-		/// </summary>
-		/// <param name="token"></param>
-		/// <returns></returns>
-		public string RefreshToken(string token)
-		{
-			var oldDto = GetExistenceToken(token);
-			if (oldDto == null)
-			{
-				throw new BussinessException("未获取到当前 Token 信息");
-			}
-
-			_tokens.Remove(oldDto);
-			var newToken = CreateToken(oldDto.User);
-			return newToken;
-		}
-
-		//public UserModel GetUser(ClaimsPrincipal principal)
-		//{
-		//	string userInfo = principal.Claims.FirstOrDefault(p => p.Type == "UserInfo").Value;
-		//	var user = JsonConvert.DeserializeObject<UserModel>(userInfo, new JsonSerializerSettings()
-		//	{
-		//		ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-		//	});
-		//	user.scope = new string[] { "test", "admin" };
-		//	return user;
-		//}
+		public void RemoveToken(TokenDto token)
+			=> _tokens.Remove(token);
 
 		public UserModel GetUser(string token)
 		{

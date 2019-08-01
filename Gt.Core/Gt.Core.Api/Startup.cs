@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Gt.Core.Api.Jwt;
+using Gt.Core.Api.Middleware;
 using Gt.Core.Data;
 using Gt.Core.Model.Models;
 using Gt.Core.Service;
@@ -37,6 +38,7 @@ namespace Gt.Core.Api
 			// Add framework services.
 			this.ConfigureDB(services);
 			this.ConfigureService(services);
+			this.ConfigureCors(services);
 			this.ConfigureAuth(services);
 
 
@@ -47,6 +49,7 @@ namespace Gt.Core.Api
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 		{
 			app.UseAuthentication();//注意添加这一句，启用验证
+			app.UseMiddleware<TokenMiddleware>();
 
 			if (env.IsDevelopment())
 			{
@@ -71,6 +74,20 @@ namespace Gt.Core.Api
 			services.AddDbContext<GtDbContext>(options =>
 				options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
 					b => b.MigrationsAssembly("Gt.Core.Data")));
+		}
+
+		private void ConfigureCors(IServiceCollection services)
+		{
+			services.AddCors(options =>
+			 options.AddPolicy("any",
+				builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin().AllowCredentials()
+				.WithExposedHeaders(new string[] { "refresh-token", "Token-Expired" }))
+			 )
+			 .AddCors(options => options.AddPolicy("AllowSameDomain",
+				builder => builder.WithOrigins(new string[] { "http://localhost:80", "http://localhost:8080", "http://localhost:3000" })
+				.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin().AllowCredentials()
+				.WithExposedHeaders(new string[] { "refresh-token", "Token-Expired" }))
+			 );
 		}
 
 		private void ConfigureAuth(IServiceCollection services)
@@ -106,42 +123,51 @@ namespace Gt.Core.Api
 					ValidateIssuerSigningKey = true,//是否验证SecurityKey
 					ClockSkew = TimeSpan.Zero
 				};
-				//o.Events = new JwtBearerEvents
-				//{
-				//	OnMessageReceived = context =>
-				//	{
-				//		var accessToken = context.HttpContext.Request.Query["access_token"];
-				//		var path = context.HttpContext.Request.Path;
-				//		if (!(string.IsNullOrWhiteSpace(accessToken))
-				//			&& path.StartsWithSegments("/hubs/message"))
-				//		{
-				//			context.Token = accessToken;
-				//		}
-				//		return Task.CompletedTask;
-				//	},
-				//	OnAuthenticationFailed = context =>
-				//	{
-				//		//Token expired
-				//		if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-				//		{
-				//			context.Response.Headers.Add("Token-Expired", "true");
-				//		}
-				//		else if (context.Exception.GetType() == typeof(SecurityTokenInvalidLifetimeException))
-				//		{
-				//			context.Response.Headers.Add("Token-Expired", "true");
-				//		}
-				//		return Task.CompletedTask;
-				//	}
-				//};
+				o.Events = new JwtBearerEvents
+				{
+					//OnMessageReceived = context =>
+					//{
+					//	var accessToken = context.HttpContext.Request.Query["access_token"];
+					//	var path = context.HttpContext.Request.Path;
+					//	if (!(string.IsNullOrWhiteSpace(accessToken))
+					//		&& path.StartsWithSegments("/hubs/message"))
+					//	{
+					//		context.Token = accessToken;
+					//	}
+					//	return Task.CompletedTask;
+					//},
+					//OnAuthenticationFailed = context =>
+					//{
+					//	//Token expired
+					//	if (context.Exception.GetType() == typeof(SecurityTokenExpiredException)
+					//	|| context.Exception.GetType() == typeof(SecurityTokenInvalidLifetimeException))
+					//	{
+					//		context.NoResult();
+					//		context.Response.StatusCode = 401;
+					//		context.Response.ContentType = "text/plain";
+
+					//		var token = context.Request.Headers["Authorization"];
+					//		TokenDto tokenDto = null;
+					//		if (!string.IsNullOrWhiteSpace(token))
+					//		{
+					//			var security = new Security(jwtSettings);
+					//			tokenDto = security.GetExistenceToken(token);
+					//			if (tokenDto != null && tokenDto.CanRefreshToken)
+					//			{
+					//				var newtoken = tokenDto.GenerateToken();
+					//				context.Response.Headers["refresh-token"] = newtoken;
+					//			}
+					//		}
+
+					//		context.Response.Headers.Add("Token-Expired", "true");
+					//	}
+					//	//return Task.CompletedTask;
+					//	return Task.FromResult(context.Response);
+					//}
+				};
 			});
 
-			services.AddCors(options =>
-			 options.AddPolicy("any",
-				builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin().AllowCredentials())
-			 )
-			 .AddCors(options => options.AddPolicy("AllowSameDomain",
-				builder => builder.WithOrigins(new string[] { "http://localhost:80", "http://localhost:8080", "http://localhost:3000" }).AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin().AllowCredentials())
-			 );
+			
 		}
 
 		private void ConfigureService(IServiceCollection services)

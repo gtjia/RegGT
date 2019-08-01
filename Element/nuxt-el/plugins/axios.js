@@ -12,21 +12,22 @@ export default function ({
     $axios.onError(error => {
         if(isDev)
         {
-            console.log(error.response.data)
+            //console.log(error.response.data)
         }
         const code = parseInt(error.response && error.response.status)
         if (code === 400) {
             redirect('/400')
         } else if (code === 401) {
             console.log(error)
-            $axios.post("/api/auth/refresh", {}).then((res) => {
-                let token = $nuxt.$auth.strategies["local"].options.tokenType + ' ' + res.data.token
+            if(error.response.headers["refresh-token"])
+            {
+                let token = $nuxt.$auth.strategies["local"].options.tokenType + ' ' + error.response.headers["refresh-token"]
                 $nuxt.$auth.setToken("local", token)
                 $nuxt.$auth.mounted()
                 
+                error.config.headers["Authorization"] = token
                 return $axios.request(error.config);
-            })
-            //$nuxt.$auth.reset()
+            }
         } else if (code === 500) {
             redirect('/sorry')
         }

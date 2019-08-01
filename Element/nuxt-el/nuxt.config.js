@@ -64,7 +64,6 @@ export default {
         endpoints: {
           login: { url: 'https://localhost:44379/api/auth/Login', method: 'post' },
           user: { url: 'https://localhost:44379/api/auth/User', method: 'get', propertyName: 'user' },
-          reset: { url: 'https://localhost:44379/api/auth/Refresh', method: 'post' },
           logout: { url: 'https://localhost:44379/api/auth/Logout', method: 'post' }
         }
       }

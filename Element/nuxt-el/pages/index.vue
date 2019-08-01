@@ -32,7 +32,6 @@
           <el-button @click="$auth.fetchUser()">Fetch User</el-button>
           <el-button @click="$auth.logout()">Logout</el-button>
           <el-button ref="testGet" @click="testGet()">测试</el-button>
-          <el-button @click="refreshToken()">刷新Token</el-button>
       </div>
     </div>
   </div>
@@ -51,22 +50,9 @@ let page = {
         console.log(res.data);
         console.log($nuxt.$auth.getToken('local'))
       })
-      //setTimeout(() => {
-      //  page.methods.testGet()
-      //}, 2000);
-    },
-    refreshToken(){
-      
-      
-      $nuxt.$axios.post("/api/auth/refresh", {}).then((res) => {
-        let token = this.$auth.strategies["local"].options.tokenType + ' ' + res.data.token
-        this.$auth.setToken("local", token)
-        this.$auth.mounted()
-        //this.$auth.setUserToken(res.data.token)
-        //this.$auth.syncRefreshToken("local")
-        console.log($nuxt.$auth.getToken('local'))
-      })
-      
+      setTimeout(() => {
+        page.methods.testGet()
+      }, 2000);
     }
   }
 }
