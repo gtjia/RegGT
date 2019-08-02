@@ -23,6 +23,7 @@ export default {
   ** Global CSS
   */
   css: [
+    'assets/page-transletion.css',
     'element-ui/lib/theme-chalk/index.css'
   ],
   /*

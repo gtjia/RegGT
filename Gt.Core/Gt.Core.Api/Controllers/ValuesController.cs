@@ -11,6 +11,7 @@ namespace Gt.Core.Api.Controllers
 	[ApiController]
 	public class ValuesController : LoginedController
 	{
+		[Authorize(Roles="Admin")]
 		// GET api/values
 		[HttpGet]
 		public ActionResult<IEnumerable<string>> Get()

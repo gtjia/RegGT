@@ -22,6 +22,8 @@ namespace Gt.Core.Data.DbMap
 
 			//Initial data
 			builder.HasData(new { Id = 1, UserName = "Admin", Password = "111111", RealName = "Guang Tao", RoleId= 1 });
+			builder.HasData(new { Id = 2, UserName = "User1", Password = "111111", RealName = "Guang Tao 1", RoleId = 2 });
+			builder.HasData(new { Id = 3, UserName = "User2", Password = "111111", RealName = "Guang Tao 2", RoleId = 2 });
 		}
 	}
 }

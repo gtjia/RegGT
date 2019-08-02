@@ -41,6 +41,7 @@
 import Logo from '~/components/Logo.vue'
 
 let page = {
+  transition: "test",
   components: {
     Logo
   },
@@ -48,11 +49,10 @@ let page = {
     testGet(){
       $nuxt.$axios.get("/api/values").then((res) => {
         console.log(res.data);
-        console.log($nuxt.$auth.getToken('local'))
       })
-      setTimeout(() => {
-        page.methods.testGet()
-      }, 2000);
+      //setTimeout(() => {
+      //  page.methods.testGet()
+      //}, 2000);
     }
   }
 }

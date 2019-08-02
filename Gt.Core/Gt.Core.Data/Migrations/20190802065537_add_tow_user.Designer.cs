@@ -3,14 +3,16 @@ using Gt.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Gt.Core.Data.Migrations
 {
     [DbContext(typeof(GtDbContext))]
-    partial class GtDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190802065537_add_tow_user")]
+    partial class add_tow_user
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -32,7 +32,7 @@ namespace Gt.Core.Api.Jwt
 		{
 			var claim = new Claim[]{
 					new Claim(ClaimTypes.Name, this.User.UserName),
-					//new Claim(ClaimTypes.Role, user.Role.RoleName),
+					new Claim(ClaimTypes.Role, this.User.RoleName),
 					//new Claim("UserInfo", json)
 				};
 

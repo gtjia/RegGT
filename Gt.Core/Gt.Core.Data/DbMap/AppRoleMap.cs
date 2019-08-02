@@ -16,6 +16,7 @@ namespace Gt.Core.Data.DbMap
 
 			//Initial data
 			builder.HasData(new AppRole() { Id = 1, RoleName = "Admin", Description = "Administrator" });
+			builder.HasData(new AppRole() { Id = 2, RoleName = "Customer", Description = "Customer" });
 		}
 	}
 }
