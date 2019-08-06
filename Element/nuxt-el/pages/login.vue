@@ -50,7 +50,7 @@ export default Vue.extend({
         submitForm(formName){
             this.$refs[formName].validate((valid) => {
                 if(valid) {
-                    console.log(this.loginForm.username);
+                    /*
                     this.$auth.loginWith('local', {
                         data: {
                             UserName: this.loginForm.username,
@@ -59,6 +59,25 @@ export default Vue.extend({
                     }).then(() => { 
                         this.$message('Logged In!');
                         })
+                    */
+                   this.$axios.post('/api/auth/Login', {
+                        UserName: this.loginForm.username,
+                        Password: this.loginForm.pass
+                    }).then(
+                        (res) => {
+                            if(res.data.error) {
+                                this.$message.error(res.data.error);
+                                //this.$alert(res.data.error, "错误", {type: "error", showIcon: true});
+                            }
+                            else {
+                                this.$auth.setUserToken(res.data.data)
+                            }
+                        }, 
+                        (reason, data) => {
+                            console.log('rejected失败回调');
+                            console.log('失败执行回调抛出失败原因：',reason);
+                        }
+                    )
                 } else {
                     console.log('error submit!!');
                     return false;

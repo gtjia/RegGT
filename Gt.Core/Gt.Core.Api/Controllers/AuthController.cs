@@ -47,19 +47,15 @@ namespace Gt.Core.Api.Controllers
 
 				var tokenStr = _security.CreateToken(user).GenerateToken();
 
-				return Ok(new
+				return Ok(new ApiResult
 				{
-					token = tokenStr
+					Data = tokenStr
 				});
 
 			}
 			catch (BussinessException ex)
 			{
-				return BadRequest(ex.Message);
-			}
-			catch (Exception ex)
-			{
-				return BadRequest("Could not verify username and password");
+				return Ok(new ApiResult() { Error = ex.Message });
 			}
 			
 		}
